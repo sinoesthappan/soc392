@@ -1,0 +1,476 @@
+---
+title: "Mapping Police Violence with R"
+subtitle: "Sociology 392: Race, Punishment, & Institutional Change"
+output: html_document
+params:
+  standalone: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Getting Started
+
+Welcome to the "Mapping Police Violence with R" lesson of the Sociology 392 course! In this 80-minute tutorial, we'll use some simple tools to produce powerful insights about the latest police violence data. The goal of this tutorial is to start building your "analytic skills," that is, your ability to detect patterns in data. If you choose to continue this project for the midterm assignment, your job will be to link those patterns to concepts and ideas from the readings.
+
+An important note: PLEASE do not worry about memorizing (or even learning) any of the code below. We could spend an entire class learning how to code, but that's beyond the scope of this assignment. Instead, I'd like you to focus on the methods we cover Creating tables, building charts, and running inferential tests are all "methods" you can use to detect patterns in data. As we move through each section, I'd like you to think about how each method can potentially help us detect other patterns in the data (besides the ones we're testing). By the way, did I mention that everyhing we are doing below is about detecting patterns in data? Great, now let's get started! 
+
+# Loading Data 
+
+R is comprised of "packages" or "programs" that allow you to do different things. Developers create new packages all the time. To load a package into R, first you install it, and then you load it into your library. Installing a package means storing it into the system's memory, and you only need to do that once. Loading a package into your library means pulling it up in your current workspace. You'll need to do that every time you work in a new R session. Here, we'll install and load the "tidyverse" package. Tidyverse is a popular package with lots of statistical and data visualization capabilities. If you become a regular user of R, you'll probably also become a regular user of tidyverse. "Broom" is another package that allows us to create pretty tables, so let's install that on, too. 
+
+
+```{r}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+library(tidyverse)
+
+install.packages("broom", repos = "http://cran.us.r-project.org")
+library(broom)
+
+install.packages("palmerpenguins", repos = "http://cran/us/r-project.org")
+library(palmerpenguins)
+```
+
+Next, you'll import the excel file you downloaded. Be sure that it is located in a folder called "directory." First, you should set your working directory using the "setwd" command (hint: just replace the file path in quotes below with the file path to your own folder where the dataset is housed). NOTE: you'll have to change the backslashes to frontslashes (R only recognizes the frontslashes for some reason). This means you're telling R where to pull files from. Then, you can import the file using the "read_csv" command. The arrow ("<-") below means I'm assigning the dataset I just imported as an object that I'll use in my workspace. Notice how, when you run that command, an object called "mpv" pops up in your "Environment" (top right corner of RStudio). This is where all the data you'll use (as well as new variables you create) will be housed! 
+
+```{r}
+setwd("C:/users/sinoe/OneDrive/Desktop/directory")
+
+# Alternatively, you can create a project and project folder, and just put everything in that instead!
+mpv <- read_csv("MPV.csv")
+```
+
+# Scoping out the Dataset
+
+First, run the code below. Then, let's take a few minutes to discuss the structure of the dataset. If you finish early, think about what variables you'd need to analyze racial disparities in types of police violence. 
+
+```{r}
+names(mpv) # displays all the variables in your dataset. 
+glimpse(mpv) # offers a sense of how the dataset is structured.  
+```
+
+AN IMPORTANT NOTE: Many commands come with R, but some commands are specific to certain packages. All commands have documentation that tells you how to use it on R. This means that you won't have to remember most of the commands I teach you today! Here's one way you can look up the documentation for the commands we ran above. 
+
+```{R}
+?names
+?glimpse
+```
+
+
+# Summarizing the Dataset
+
+Now let's run some summary statistics to explore the dataset. For variables with numerical values, we'll use the 'summary' command, and for variables with categorical values, we'll use the 'table' command, as well as the 'prop.table' clause, which tells us to show proportions rather than raw counts. Within each command, you call the variable you want to analyze by listing the name of the dataset, a dollar sign ($), and the name of the variable. 
+
+```{r}
+summary(mpv$age)
+table(mpv$gender) %>% prop.table()
+table(mpv$race) %>% prop.table()
+table(mpv$cause_of_death) %>% prop.table()
+table(mpv$officer_charged) %>% prop.table()
+```
+
+Now it yourself! Select a different variable from the Mapping Police Violence dataset to summarize. I added the names(mpv) command below first to help remind you the variable names. 
+```{r}
+names(mpv)
+# INSERT YOUR CODE HERE! 
+```
+
+## Two-Way Tables
+
+Two-Way tables, sometimes referred to as cross-tabulations, are a great way to look at patterns between two potentially variables. You use the same 'table' command, with the same 'prop.table()' clause. But this time, you'll include two variables in your parenthentical argument rather than one! Let's look at how the incident characteristics variables in our datasets break down by race. 
+
+```{r}
+table(mpv$race, mpv$cause_of_death) %>% prop.table()
+table(mpv$race, mpv$officer_charged) %>% prop.table()
+```
+
+Now try building a two-way table yourself using the variable you chose in the previous exercise (line 73)
+
+```{r}
+# INSERT YOUR CODE HERE! 
+```
+
+
+## Three-Way Tables
+
+Three-way tables are easy to perform, but difficult to interpret. Let's say you wanted to look at patterns related to race AND gender in the police violence data. All you have to do is add a third variable into your parenthetical argument. Let's give it a try with two variables and talk about the results. 
+
+```{r}
+table(mpv$race, mpv$gender, mpv$cause_of_death) %>% prop.table()
+table(mpv$race, mpv$gender, mpv$officer_charged) %>% prop.table()
+```
+
+Your turn! Again, you'll use the same varaible you chose in the last exercise (line 88)
+
+```{r}
+# INSERT YOUR CODE HERE
+```
+
+# Visualizing data
+
+Tables are ugly. Charts and graphs are ugly too, but they're less ugly! In this part of the lesson, we'll look at a few charts.
+
+## Histograms
+
+First is the histogram. Histograms show you the frequency of numerical data using rectangular bars (similar to bar charts, but distinct in ways we'll cover shortly). In this dataset, the only variable that fits the bill is Age. Zip Code also works, but it doesn't really tell us anything meaningful, so let's stick with age. 
+
+```{r} 
+hist(mpv$age)
+```
+
+Beautiful, right? WRONG! The title of the graph uses the name of the variable provided in R, and so does the X axis title. Let's get those ugly labels out of here and insert new and cute ones by adding what I'm calling "title arguments" to our code for the histogram. Each "argument" within your histogram code tells R where to add the title labels. "Main" is for the main title, and "xlab" is for the x-axis label. If you're feeling spicy, you can also add a little color to your graph with the "col" argument. R has most colors! 
+
+```{R}
+hist(mpv$age, 
+main = "Age of People Murdered by Police 2018-2019", 
+xlab = "Age", 
+col = "orange")
+```
+
+Much betta! But, as we discussed, there's really only one variable with numerical values that we can plot as a histogram. Since most of our variables contain categorical values, we'll have to make friends with bar charts! 
+
+## Bar Charts
+
+Bar charts have a similar function as histogram, but they are slightly more complicated. The barplot() command displays categorical data with rectangular bars that are proportionate to the values they represent. Before running barplot, you'll have to create a variable that transforms the data you're plotting into its own table. 
+
+```{R}
+racecounts <- table(mpv$race)
+barplot(racecounts)
+
+deathcausecounts <- table(mpv$cause_of_death)
+barplot(deathcausecounts)
+```
+
+We can make these graphs slightly more cute, just as we did with the histogram, by adding proper labels and some color! 
+
+```{R}
+racecounts <- table(mpv$race)
+barplot(racecounts, 
+        main = "Frequency of US Police Violence 2018-2019, by Racial/Ethnic Group", 
+        xlab = "Racial/Ethnic Groups", 
+        col = "purple")
+```
+
+Now, try creating bar charts for the variable you selected on your own below (use lines 148-152 as a reference)
+
+```{R}
+#INSERT YOUR CODE HERE
+```
+
+## Maps 
+Geographic data (i.e., data that uses x, y coordinates) is NOT easy! We won't cover it in this lesson, but below is some code you can try out on your own if you're interested. Feel free to schedule an office hours appointment if you want to incorporate mapping into your memo or midterm paper. 
+
+```{R}
+install.packages("usmap", repos = "http://cran.us.r-project.org")
+library(usmap)
+
+install.packages("sp", repos = "http://cran.us.r-project.org")
+library(sp)
+
+plot_usmap(data = mpv, 
+           values = "age", 
+           color = "black") + 
+  scale_fill_continuous(name = "Age", 
+                        label = scales::comma) + 
+  labs(title = "Frequency of Police Violence 2018-2019, by Age and State") +
+  theme(legend.position = "right")
+
+
+# Add Coordinate Points for Incidents with Women
+
+mpv_gender_coords <- mpv %>%          
+  filter(gender == "Female") %>%      # select female incidents
+  select(latitude, longitude) %>%     # select only the coordinate columns
+  data.frame()                        # turn it into a data frame
+
+# Make the coordinates amenable to 'plot_usmap'
+mpv_gender_coords <- usmap_transform(mpv_gender_coords,
+                                     input_names = c("longitude", "latitude"))
+# include the coordinates as points in the 'geom_point' line
+plot_usmap(data = mpv, 
+           values = "age", 
+           color = "black") + 
+  scale_fill_continuous(name = "Age", 
+                        label = scales::comma) +
+  theme(legend.position = "right") +
+  geom_point(data = mpv_gender_coords,       
+             aes(x = x,   
+                 y = y),
+             color = "red") +
+  labs(title = "Frequency of Police Violence by Females 2018-2019, by Age and State") 
+
+```
+
+Let's take a moment to discuss the following questions: 
+
+1. What is the purpose of summarizing data?  
+
+2. Compare tables and bar charts. When might you use a table vs. a bar chart?  
+
+
+# Inferential statistics 
+
+Because numbers are often collected and presented in biased ways, datasets usually distort the measures they attempt to portray. As analysts, it's our job to sort through the noise and detect patterns. 
+
+## Difference in Proportions Tests (chi-squared)
+
+One powerful tool to detect patterns is the Chi-Squared test, which allows you to test whether the difference in the proportions you're analyzing are statistically significant. Statistical significance is a term you'll hear frequently in statistics. You know if the difference between two groups is statistically significant if the "p-value" is less than 0.05. Let's run some chi-squared tests to measure the degree to which the incident characteristics variables are dependent on race. Note that the "chisq.test()" command ONLY tells you about statistical significance. It's always a good idea to run the table before running the test, so you have a sense of what you're testing!  
+
+```{R}
+table(mpv$race, mpv$cause_of_death) %>% prop.table()
+chisq.test(mpv$race, mpv$cause_of_death, correct = FALSE) 
+
+table(mpv$race, mpv$officer_charged) %>% prop.table()
+chisq.test(mpv$race, mpv$officer_charged, correct = FALSE) 
+
+```
+
+Great! It looks like our first two tests are NOT statistically significant, but the third one is! Let's take a moment to discuss what statistical significance means in the context of our analysis. 
+
+Now let's plot our statistically significant variable in two different ways. First, we'll create a grouped bar chart, which we specify using the "position = 'dodge'" argument in our code. 
+
+```{R}
+# Pretty Version of the Graphs
+
+# Graph with cleaned data
+ggplot(mpv,                               
+       aes(fill=signs_of_mental_illness, 
+           x = race)) + 
+  geom_bar(position = "stack", 
+           stat = "count") +                  # when we set "stat" to "count" ggplot automatically sums for us
+  scale_x_discrete(labels = c("Asian", "Black", "Hispanic",
+                              "Native \n American",
+                              "Native Hawaiian & \n Pacific Islander",
+                              "White")) +
+  scale_fill_manual(values=c("darkgreen", "#0072B2D0", "maroon"))+    # change the colors if you want
+  labs(x = "Race",                           # Fix the labels
+     y = "Count",
+     fill = "Signs of Mental Illness") +     # scale_x_discrete is where we can edit the x-axis labels          
+    theme(axis.text.x = element_text(color = "black",
+                               size = 8))
+```
+
+
+Now we'll try a stacked bar chart, which we specify using the"position = 'stack'" argument. 
+```{R}
+
+## BONUS PLOT##
+# Create Proportions/Percent Stacked Plot
+
+# First, create the percent/proportion of variable - then save to dataframe
+percent_mpv <- mpv %>% 
+  count(race, signs_of_mental_illness) %>% 
+  group_by(race) %>% 
+  mutate(prop = n / sum(n))
+
+ggplot(percent_mpv,                               # use the new dataframe
+       aes(fill=signs_of_mental_illness, 
+                y = prop, x = race)) + 
+  geom_bar(position = "stack", 
+           stat = "identity") +
+  scale_x_discrete(labels = c("Asian", "Black", "Hispanic",
+                              "Native \n American",
+                              "Native Hawaiian & \n Pacific Islander",
+                              "White")) +
+  labs(x = "Race", 
+     y = "Proportion",
+     fill = "Signs of Mental Illness",            # Add a title so that it is clear what the proportion is
+     title = "Proportion of Signs of Mental Illness by each Race") +
+    theme(axis.text.x = element_text(color = "black",
+                               size = 8))
+```
+
+These are two great methods to visualize patterns you observe in tables! Pick one method, and use it to visualize patterns in the variable you selected in previous exercises. 
+
+```{R}
+
+#INSERT YOUR CODE HERE
+
+```
+
+Below is some code for additional bar plots you can try using on your own. Again, feel free to schedule office hours appointments with me if you need guidance!  
+
+```{r}
+#######################
+# Additional Bar Plots#
+#######################
+
+ggplot(mpv, aes(fill=allegedly_armed, x = race)) + 
+  geom_bar(position = "dodge", stat = "count")
+ggplot(mpv, aes(fill=allegedly_armed, x = race)) + 
+  geom_bar(position = "stack", stat = "count")
+
+###########################################################
+# The patchwork package helps combine plots into one image
+###########################################################
+
+install.packages("patchwork", repos = "http://cran.us.r-project.org")
+library(patchwork)
+
+plot1 <- ggplot(mpv, aes(fill=call_for_service, x = race)) + 
+  geom_bar(position = "dodge", stat = "count")
+plot2 <- ggplot(mpv, aes(fill=call_for_service, x = race)) + 
+  geom_bar(position = "stack", stat = "count")
+
+plot1 / plot2
+```
+
+
+## Regressions
+
+In their most basic form, regressions are another (perhaps more robust) way to detect patterns in the relationship between two or more variables. Simple regressions can be broadly categorized as linear or logistic (there are other types, but we won't cover them). You use LINEAR regressions when the outcome variable you're testing contains numeric values. And you use LOGISTIC regressions when the outcome variable you're testing contains categorical values. As a reminder, most of the variables in this dataset (and especially the one's we're interested in testing as outcomes) are categorical. We'll use the "glm" function to run the logistic regression. 
+
+BUT FIRST, regression models are a little dumb, so we need to give them some guidance! First, we'll need to specify that the categorical variables we're testing are indeed categorical variables using the "factor" command. And then, we'll need to tell R what our "reference group" is. For example, because we're analyzing race, the reference group would be white. So if you ask R to calculate the likelihood that a Black person's cause of death is a gunshot, it will produce the probability relative to a White person's cause of death being a gunshot. You'll also need to create a reference group for the outcome variables you're testing. Let's do it for both! 
+
+```{R}
+#First, let's tell R to treat the variables of interest as categorical variables
+
+columns_to_factorize = c("race", "gender", "cause_of_death", "officer_charged",
+                         "signs_of_mental_illness", "allegedly_armed", "wapo_threat_level", 
+                         "wapo_flee", "wapo_body_camera", "geography", "call_for_service")
+
+for (col in columns_to_factorize) {
+    mpv[[col]] <- factor(mpv[[col]])}
+
+#Next, we'll specify the reference groups. 
+
+columns_and_refs = list(
+    race = "White",
+    gender = 1,
+    cause_of_death = 1,
+    signs_of_mental_illness = "No",
+    allegedly_armed = "Unarmed/Did Not Have Actual Weapon",
+    wapo_threat_level = "No Attack",
+    wapo_flee = "No Flee Attempt",
+    wapo_body_camera = "No",
+    geography = "Rural",
+    call_for_service = "No",
+    officer_charged = 2)
+
+for (col in names(columns_and_refs)) {
+
+print(prop.table(table(mpv[[col]])))
+    
+mpv[[col]] <- relevel(mpv[[col]], ref = columns_and_refs[[col]])}
+
+```
+
+Now we're ready to use the 'glm' command to run our regressions! The first argument in glm is the outcome variable, followed by the independent variable (or the one you're testing). Then you specify the name of the dataset and what family the data belong to (not necessary for this exercise). In the code below, you'll assign the model to a variable called "causeofdeath_model" and then summarize it. After running that code, let's take a moment to interpret the results together. 
+
+```{R}
+SOMI_model <- glm(signs_of_mental_illness ~ race, data = mpv, family = "binomial")
+summary(SOMI_model)
+
+# BONUS easy and pretty table:
+install.packages("stargazer",  repos = "http://cran.us.r-project.org")
+library(stargazer)
+
+stargazer_table <- stargazer(SOMI_model, type = "html") # <- this will render prettily when you knit the document
+# OR
+stargazer(SOMI_model, type = "text",
+                     dep.var.labels = "Signs of Mental Illness",
+                     covariate.labels = c("Asian", "Black","Native American",
+                                          "Native Hawaiian and Pacific Islander",
+                                          "Intercept"))
+```
+
+`r stargazer_table`
+
+So far, we discussed basic regression models, which aren't all that different from chi-squared tests. So, why regression instead of chi-squared? Regressions have a lot more capabilities! One powerful regression tool is the ability to use "control variables." Control variables are columns in our dataset that we hold constant for the purposes of analysis. Just like in a science experiment, having a control group allows you to minimize bias. For instance, let's take a moment to discuss why our analysis of race and cause of death might be biased. What are some potential variables that might skew our data and why? 
+
+CAVEAT: You don't want to dump ALL the possible controls into your model for statistical reasons that are beyond the scope of this course. So, be selective! Choose only a handful of controls (3-4) that make sense to add in!
+
+Adding controls to your model is as simple as adding the '+' sign to the equation. Let's give it a try! 
+
+```{R}
+SOMI_model2 <- glm(signs_of_mental_illness ~ race + gender, data = mpv, family = "binomial")
+summary(SOMI_model2)
+
+SOMI_model3 <- glm(signs_of_mental_illness ~ race + gender + geography, data = mpv, family = "binomial")
+summary(SOMI_model3)
+
+SOMI_model4 <- glm(signs_of_mental_illness ~ race + gender + geography + wapo_threat_level + wapo_flee, data = mpv, family = "binomial")
+summary(SOMI_model4)
+
+SOMI_model4 <- glm(signs_of_mental_illness ~ race + gender + geography + wapo_threat_level + wapo_flee + call_for_service, data = mpv, family = "binomial")
+summary(SOMI_model4)
+names(mpv)
+
+```
+
+AIC is ONE (of several) ways we can determine whether the variables we selected for the regression are "a good fit" for the model. The lower the AIC score, the better the fit! Based on the output above, which model best fits our data? 
+
+Here's another, better way to quickly see all the AIC results. 
+
+```{r}
+AIC(SOMI_model, SOMI_model2, SOMI_model3, SOMI_model4)
+
+library(stargazer)
+# BONUS TABLE AGAIN!
+stargazer(SOMI_model, SOMI_model4,
+                     type = "text",
+                     dep.var.labels = "Signs of Mental Illness",
+                     column.labels = c("Model 1","Model 4"),
+                     covariate.labels = c("Asian", "Black","Native American",
+                                          "Native Hawaiian and Pacific Islander",
+                                          "Male", "Suburban", "Undetermined Geography",
+                                          "Urban", "Attack Threat Level", "Flee Attempt",
+                                          "Intercept"))
+```
+
+
+The predict() function allows us to predict the probability that our outcome value (the likelihood of cause of death) increases, given the values of the predictors (race). If you run the code and then look at the output of `predictions`, it will be a long list of values. These are the *predicted probabilities* given the fit of the model; i.e. what we expect with our model. 
+
+### KATHY: I think I broke the last couple of coding lines (basically everything from here to 459) :')
+ 
+# in this step, we are creating a dataset that drops the missing variables
+# from the data that are excluded in model 4
+ mpv_na_drop <- mpv %>% drop_na(signs_of_mental_illness, race, gender, 
+                               geography, wapo_threat_level, wapo_flee)
+
+# Take the model of interest and use the `predict()` function
+# Save the predictions to the new dataframe we created
+mpv_na_drop$predictions <- predict(SOMI_model4,
+                        type = "response")    # You should use "response because it will create
+                                              # probabilities in the units of the response variable 
+                                              # rather than in the log-odds that is the default
+
+options(scipen = 100) # Gets rid of scientific notation
+
+# Group by race, then calculate the mean predicted probability
+mpv_na_drop %>% group_by(race) %>% summarise(mean(predictions))
+
+
+
+Finally, let's plot our model! Since the race variable is categorical, think about what you *expect* the plot to look like. It can't be a line graph. Instead, we will use box plots to compare the median and spread of the predicted values by race.
+
+
+
+ggplot(mpv_na_drop,
+       aes(x = race,
+           y = predictions)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = c("White", "Asian", "Black", "Hispanic",
+                            "Native \n American",
+                            "Native Hawaiian & \n Pacific Islander")) +
+  labs(x = "Race", 
+     y = "Predicted Probability",
+     title = "Predicted Probability by Race") +
+  theme(axis.text.x = element_text(color = "black",
+                               size = 8)) + 
+  theme_minimal()
+
+
+We're reaching the end of this lesson. PLEASE DO NOT WORRY if none of the code makes sense to you. Only about 50% of it makes sense to me! Rather than paying attention to the code itself, I'd like you to focus on what the code is "doing." That is, you should now know the difference between a two-way table and a three-way table; what types of data are used for histograms and bar charts, and what they tell you; and what kinds of tests you should run when you have different types of data. 
+
+Let's think through a few examples:  
+
+1. How would we test the effect of race AND gender on whether an officer was charged? 
+
+2. What are some relevant controls you'd include in the regression?  
+
+3. How can we visualize the effect of race AND gender on whether an officer is charged?  
+
+4. Work with the person next to you to answer the questions above using a different set of variables.  
+
